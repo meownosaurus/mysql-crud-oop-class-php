@@ -2,8 +2,8 @@
 # Connect MySQL Database OOP Class
 # @package
 # @since 2.5
-# @version 0.3
-# @link http://
+# @version 1.0
+# @link http://github.com/meownosaurus/mysql-oop-class-php/
 
 Class MySQL {
 	
