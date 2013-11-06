@@ -62,8 +62,8 @@ And voila:
 | id | username      |
 +----+---------------+
 |  1 | superuser     |
-|  2 | admin  |
-|  3 | user |
+|  2 | admin         |
+|  3 | user          |
 +----+---------------+
 ```
 
@@ -85,13 +85,13 @@ Array
     [1] => Array
         (
             [id] => 2
-            [username] => a1phanumeric
+            [username] => admin
         )
 
     [2] => Array
         (
             [id] => 3
-            [username] => Thrackhamator
+            [username] => user
         )
 
 )
