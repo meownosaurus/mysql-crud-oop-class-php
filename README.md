@@ -44,7 +44,7 @@ To show you how easy this class is to use, consider you have a table called *adm
 | id | username     |
 +----+--------------+
 |  1 | superuser    |
-|  2 | admin         |
+|  2 | admin        |
 +----+--------------+
 ```
 
