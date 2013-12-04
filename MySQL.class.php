@@ -283,7 +283,7 @@ Class connectDB {
 	}
 
 	// Return number of rows
-	public function CountRows($from, $where=''){
+	public function countrows($from, $where=''){
 		$result = $this->select($from, $where, '', '', false, 'AND','count(*)');
 		return $result["count(*)"];
 	}
