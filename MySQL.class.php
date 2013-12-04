@@ -5,7 +5,7 @@
 # @version 1.0
 # @link http://github.com/meownosaurus/mysql-oop-class-php/
 
-Class MySQL {
+Class connectDB {
 	
 	# Base variables for credentials to MySQL database
 	# The variables have been declared as private. This
@@ -20,21 +20,21 @@ Class MySQL {
 	var $link = null; // Database Connection Link
 
 	var $error; // Holds the last error
-	var $lastQuery; // Holds the last query
+	var $lastquery; // Holds the last query
 	var $result; // Holds the MySQL query result
 	var $records; // Holds the total number of records returned
 	var $affected; // Holds the total number of records affected
-	var $rawResult; // Holds raw 'arrayed' results
-	var $valueResult; // Holds an array of the result
+	var $rawresult; // Holds raw 'arrayed' results
+	var $valueresult; // Holds an array of the result
 
 	/*Constructor function this will run when we call the class */
-	function MySQL($db_host='localhost', $db_user, $db_pass, $db_name, $persistent=false){
+	function connectDB($db_host='localhost', $db_user, $db_pass, $db_name, $persistent=false){
 		$this->db_host = $db_host;
 		$this->db_user = $db_user;
 		$this->db_pass = $db_pass;
 		$this->db_name = $db_name;
 		$this->persistent = $persistent;
-		$this->Connect();
+		$this->connect();
 	}
 	
 	# ===================================
@@ -43,8 +43,7 @@ Class MySQL {
 	
 	// Connects class to database
 	// $persistant (boolean) - Use persistant connection?
-	private function Connect(){
-		$this->CloseConnect();
+	private function connect(){
 		if($this->persistent){
 			$this->link = mysql_pconnect($this->db_host, $this->db_user, $this->db_pass);
 		}else{
@@ -57,23 +56,23 @@ Class MySQL {
 		}
 
 		/* Select the requested DB */
-		if(!$this->UseDB()){
+		if(!$this->selectDB()){
 			$this->error = 'Could not connect to database: ' . mysql_error($this->link);
 			return false;
 		}
 		return true;
-		
+		$this->disconnect();
 	}
 	
 	// Closes the connections
-	private function CloseConnect(){
+	private function disconnect(){
 		if($this->link){
 			mysql_close($this->link);
 		}
 	}
 
 	// Select database to use
-	private function UseDB(){
+	private function selectDB(){
 		if(!mysql_select_db($this->db_name, $this->link)){
 			$this->error = 'Cannot select database: ' . mysql_error($this->link);
 			return false;
@@ -87,7 +86,7 @@ Class MySQL {
 	
 	
 	// Performs a 'mysql_real_escape_string' on the entire array/string
-	private function SecureData($data){
+	private function securedata($data){
 		if(is_array($data)){
 			foreach($data as $key=>$val){
 				if(!is_array($data[$key])){
@@ -105,14 +104,14 @@ Class MySQL {
 	# ===================================
 
 	// Executes MySQL query
-	public function ExecuteSQL($query){
-		$this->lastQuery 	= $query;
+	public function execute($query){
+		$this->lastquery 	= $query;
 		if($this->result = mysql_query($query, $this->link)){
 			$this->records = @mysql_num_rows($this->result);
 			$this->affected = @mysql_affected_rows($this->link);
 			if($this->records > 0){
-				$this->ArrayResults();
-				return $this->valueResult;
+				$this->arrayresults();
+				return $this->valueresult;
 			}else{
 				return true;
 			}
@@ -123,7 +122,7 @@ Class MySQL {
 	}
 	
 	// Adds a record to the database based on the array key names
-	public function Insert($vars, $table, $exclude = ''){
+	public function insert($vars, $table, $exclude = ''){
 		
 		// Catch Exclusions
 		if($exclude == ''){
@@ -133,7 +132,7 @@ Class MySQL {
 		array_push($exclude, 'MAX_FILE_SIZE'); // Automatically exclude this one
 		
 		// Prepare Variables
-		$vars = $this->SecureData($vars);
+		$vars = $this->securedata($vars);
 		
 		$query = "INSERT INTO `{$table}` SET ";
 		foreach($vars as $key=>$value){
@@ -146,15 +145,15 @@ Class MySQL {
 		
 		$query = substr($query, 0, -2);
 		
-		return $this->ExecuteSQL($query);
+		return $this->execute($query);
 	}
 	
 	// Deletes a record from the database
-	public function Delete($table, $where='', $limit='', $like=false){
+	public function delete($table, $where='', $limit='', $like=false){
 		$query = "DELETE FROM `{$table}` WHERE ";
 		if(is_array($where) && $where != ''){
 			// Prepare Variables
-			$where = $this->SecureData($where);
+			$where = $this->securedata($where);
 			
 			foreach($where as $key=>$value){
 				if($like){
@@ -173,12 +172,12 @@ Class MySQL {
 			$query .= ' LIMIT ' . $limit;
 		}
 		
-		return $this->ExecuteSQL($query);
+		return $this->execute($query);
 	}
 	
 	
 	// Gets a single row from $from where $where is true
-	public function Select($from, $where='', $orderBy='', $limit='', $like=false, $operand='AND',$cols='*'){
+	public function select($from, $where='', $orderBy='', $limit='', $like=false, $operand='AND',$cols='*'){
 		// Catch Exceptions
 		if(trim($from) == ''){
 			return false;
@@ -186,7 +185,7 @@ Class MySQL {
 		$query = "SELECT {$cols} FROM `{$from}` WHERE ";
 		if(is_array($where) && $where != ''){
 			// Prepare Variables
-			$where = $this->SecureData($where);
+			$where = $this->securedata($where);
 			
 			foreach($where as $key=>$value){
 				if($like){
@@ -210,12 +209,12 @@ Class MySQL {
 			$query .= ' LIMIT ' . $limit;
 		}
 		
-		return $this->ExecuteSQL($query);
+		return $this->execute($query);
 		
 	}
 	
 	// Updates a record in the database based on WHERE
-	public function Update($table, $set, $where, $exclude = ''){
+	public function update($table, $set, $where, $exclude = ''){
 		// Catch Exceptions
 		if(trim($table) == '' || !is_array($set) || !is_array($where)){
 			return false;
@@ -224,8 +223,8 @@ Class MySQL {
 			$exclude = array();
 		}
 		array_push($exclude, 'MAX_FILE_SIZE'); // Automatically exclude this one
-		$set 		= $this->SecureData($set);
-		$where 	= $this->SecureData($where);
+		$set 		= $this->securedata($set);
+		$where 	= $this->securedata($where);
 		// SET
 		$query = "UPDATE `{$table}` SET ";
 		foreach($set as $key=>$value){
@@ -241,51 +240,51 @@ Class MySQL {
 			$query .= "`{$key}` = '{$value}' AND ";
 		}
 		$query = substr($query, 0, -5);
-		return $this->ExecuteSQL($query);
+		return $this->execute($query);
 	}
 	
 	// 'Arrays' a single result
-	public function ArrayResult(){
-		$this->valueResult = mysql_fetch_assoc($this->result) or die (mysql_error($this->link));
-		return $this->valueResult;
+	public function arrayresult(){
+		$this->valueresult = mysql_fetch_assoc($this->result) or die (mysql_error($this->link));
+		return $this->valueresult;
 	}
 
 	// 'Arrays' multiple result
-	public function ArrayResults(){
+	public function arrayresults(){
 		
 		if($this->records == 1){
-			return $this->ArrayResult();
+			return $this->arrayresult();
 		}
 		
-		$this->valueResult = array();
+		$this->valueresult = array();
 		while ($data = mysql_fetch_assoc($this->result)){
-			$this->valueResult[] = $data;
+			$this->valueresult[] = $data;
 		}
-		return $this->valueResult;
+		return $this->valueresult;
 	}
 	
 	// 'Arrays' multiple results with a key
-	public function ArrayResultsWithKey($key='id'){
-		if(isset($this->valueResult)){
-			unset($this->valueResult);
+	public function arrayresultswithkey($key='id'){
+		if(isset($this->valueresult)){
+			unset($this->valueresult);
 		}
-		$this->valueResult = array();
+		$this->valueresult = array();
 		while($row = mysql_fetch_assoc($this->result)){
-			foreach($row as $theKey => $theValue){
-				$this->valueResult[$row[$key]][$theKey] = $theValue;
+			foreach($row as $thekey => $thevalue){
+				$this->valueresult[$row[$key]][$thekey] = $thevalue;
 			}
 		}
-		return $this->valueResult;
+		return $this->valueresult;
 	}
 
 	// Returns last insert ID
-	public function LastInsertID(){
+	public function lastinsertid(){
 		return mysql_insert_id();
 	}
 
 	// Return number of rows
 	public function CountRows($from, $where=''){
-		$result = $this->Select($from, $where, '', '', false, 'AND','count(*)');
+		$result = $this->select($from, $where, '', '', false, 'AND','count(*)');
 		return $result["count(*)"];
 	}
 }
