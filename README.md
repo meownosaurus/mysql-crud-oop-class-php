@@ -14,7 +14,7 @@ Simply include this class into your project like so:
 	require_once("MySQL.class.php");
 
 	//Set up all yor paramaters for connection
-	$db = new MySQL("localhost","username","password","database",$persistent=false);
+	$db = new connectDB("localhost","username","password","database",$persistent=false);
   
 ?>
 ```
@@ -24,15 +24,15 @@ Usage
 
 To use this class, you'd first init the object like so (using example credentials):
 
-`$db = new MySQL("localhost","username","password","database",$persistent=false);`
+`$db = new connectDB("localhost","username","password","database",$persistent=false);`
 
 Provided you see no errors, you are now connected and can execute full MySQL queries using:
 
-`$db->ExecuteSQL($query);`
+`$db->execute($query);`
 
-`ExecuteSQL()` will return an array of results, or a true (if an UPDATE or DELETE).
+`execute()` will return an array of results, or a true (if an UPDATE or DELETE).
 
-There are other functions such as `Insert()`, `Delete()` and `Select()` which may or may not help with your queries to the database.
+There are other functions such as `insert()`, `delete()` and `select()` which may or may not help with your queries to the database.
 
 Example
 -------
@@ -52,7 +52,7 @@ To add a user, you'd simply use:
 
 ```
 $newUser = array('username' => 'user');
-$db->Insert($newUser, 'admin');
+$db->insert($newUser, 'admin');
 ```
 
 And voila:
@@ -67,9 +67,9 @@ And voila:
 +----+---------------+
 ```
 
-To get the results into a usable array, just use `$db->Select('admin')` ...for example, doing the following:
+To get the results into a usable array, just use `$db->select('admin')` ...for example, doing the following:
 
-`print_r($db->Select('admin'));`
+`print_r($db->select('admin'));`
 
 will yield:
 
