@@ -3,7 +3,7 @@
 # @package
 # @since 2.5
 # @version 1.0
-# @link http://github.com/meownosaurus/mysql-oop-class-php/
+# @link http://github.com/meownosaurus/mysql-crud-oop-class-php/
 
 Class connectDB {
 	
