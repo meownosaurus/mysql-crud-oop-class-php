@@ -1,8 +1,8 @@
 <?php
-# Connect MySQL Database OOP Class
+# MySQL CRUD Class PHP
 # @package
 # @since 2.5
-# @version 1.0
+# @version 0.3
 # @link http://github.com/meownosaurus/mysql-crud-oop-class-php/
 
 Class connectDB {
@@ -11,10 +11,10 @@ Class connectDB {
 	# The variables have been declared as private. This
 	# means that they will only be available with the 
 	# Database class
-	private $db_host;	// MySQL Hostname
-	private $db_user;	// MySQL Username
-	private $db_pass;	// MySQL Password
-	private $db_name;	// MySQL Database
+	private $db_host; // MySQL Hostname
+	private $db_user; // MySQL Username
+	private $db_pass; // MySQL Password
+	private $db_name; // MySQL Database
 	
 	# Extra variables that are required by other function such as boolean con variable
 	var $link = null; // Database Connection Link
