@@ -60,7 +60,6 @@ Use the following code to select * rows from the databse using this class
 <?php
 require_once("MySQL.class.php");
 $db = new Database();
-$db->connect();
 $db->select('tbl_test'); // Table name
 $res = $db->getResult();
 print_r($res);
@@ -72,7 +71,6 @@ Use the following code to specify what is selected from the database using this 
 <?php
 require_once("MySQL.class.php");
 $db = new Database();
-$db->connect();
 $db->select('tbl_test','id,name','name="Name 1"','id DESC'); // Table name, Column Names, WHERE conditions, ORDER BY conditions
 $res = $db->getResult();
 print_r($res);
