@@ -101,7 +101,6 @@ Use the following code to select rows using a join in the database using this cl
 <?php
 require_once("MySQL.class.php");
 $db = new Database();
-$db->connect();
 $db->select('tbl_test','tbl_test.id,tbl_test.name,tbl_child.name','tbl_child ON tbl_test.id = parentId','tbl_test.name="Name 1"','id DESC'); // Table name, Column Names, JOIN, WHERE conditions, ORDER BY conditions
 $res = $db->getResult();
 print_r($res);
@@ -115,7 +114,6 @@ Use the following code to update rows in the database using this class
 <?php
 require_once("MySQL.class.php");
 $db = new Database();
-$db->connect();
 $db->update('tbl_test',array('name'=>"Name 4",'email'=>"name4@email.com"),'id="1" AND name="Name 1"'); // Table name, column names and values, WHERE conditions
 $res = $db->getResult();
 print_r($res);
@@ -129,7 +127,6 @@ Use the following code to insert rows into the database using this class
 <?php
 require_once("MySQL.class.php");
 $db = new Database();
-$db->connect();
 $data = $db->escapeString("name5@email.com"); // Escape any input before insert
 $db->insert('tbl_test',array('name'=>'Name 5','email'=>$data));  // Table name, column names and respective values
 $res = $db->getResult();  
@@ -144,7 +141,6 @@ Use the following code to delete rows from the database with this class
 <?php
 require_once("MySQL.class.php");
 $db = new Database();
-$db->connect();
 $db->delete('tbl_test','id=5');  // Table name, WHERE conditions
 $res = $db->getResult();  
 print_r($res);
@@ -158,7 +154,6 @@ Use the following code to enter the full SQL query
 <?php
 require_once("MySQL.class.php");
 $db = new Database();
-$db->connect();
 $db->query('SELECT id,name FROM tbl_test');
 $res = $db->getResult();
 foreach($res as $output){
