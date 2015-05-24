@@ -1,5 +1,5 @@
 <?php
-# MySQL Class PHP
+# MySQLi Class PHP
 # @Package Database PHP
 # @since 2.5
 # @Version 1.3
@@ -15,50 +15,40 @@ class Database {
 	private $db_user = "username";  // Change as required
 	private $db_pass = "password";  // Change as required
 	private $db_name = "database";	// Change as required
-    private $persistent = false;
 	
 	/*
 	 * Extra variables that are required by other function such as boolean con variable
 	 */
 	var $con = false; // Check to see if the connection is active
+    var $myconn = ""; // This will be our mysqli object
 	var $result = array(); // Any results from a query will be stored here
     var $myQuery = ""; // used for debugging process with SQL return
     var $numResults = ""; // used for returning the number of rows
 
     function __construct() {
-        /* Connect to the MySQl Server */
+        /* Connect to the MySQli Server */
         if(!$this->con){
-            if ($this->persistent){
-                $myconn = @mysql_pconnect($this->db_host, $this->db_user, $this->db_pass); // mysql_pconnect() with variables defined at the start of Database class
-            } else {
-                $myconn = @mysql_connect($this->db_host, $this->db_user, $this->db_pass); // mysql_connect() with variables defined at the start of Database class
-            }
-            if($myconn){
-                $select_db = @mysql_select_db($this->db_name,$myconn); // Credentials have been pass through mysql_connect() now select the database
-                if($select_db){
-                    mysql_query("SET character_set_results='utf8'"); // change character set to utf8
-                    mysql_query("SET character_set_client='utf8'");
-                    mysql_query("SET character_set_connection='utf8'");                    
-                    $this->con = true;
-                    return true;  // Connection has been made return TRUE
-                }else{
-                    array_push($this->result, mysql_error());
-                    return false;  // Problem selecting database return FALSE
-                }  
+            $this->myconn = new mysqli($this->db_host, $this->db_user, $this->db_pass, $this->db_name);  // mysql_connect() with variables defined at the start of Database class
+            if($this->myconn->connect_errno > 0){
+                array_push($this->result, $this->myconn->connect_error);
+                return false; // Problem selecting database return FALSE
             }else{
-                array_push($this->result, mysql_error());
-                return false; // Problem connecting return FALSE
-            }
-        }else{
+                $this->myconn->set_charset('utf8'); // change character set to utf8
+                $this->con = true;
+                return true; // Connection has been made return TRUE
+            } 
+        } else {  
             return true; // Connection has already been made return TRUE 
-        }
+        }   
+
+ 
     }
 
     function __destruct() {
         // If there is a connection to the database
         if($this->con){
             // We have found a connection, try to close it
-            if(@mysql_close()){
+            if($this->myconn->close()){
                 // We have successfully closed the connection, set the connection variable to false
                 $this->con = false;
                 // Return true tjat we have closed the connection
@@ -71,19 +61,19 @@ class Database {
     }
 	
 	public function query($sql){
-		$query = @mysql_query($sql);
+		$query = $this->myconn->query($sql);
         $this->myQuery = $sql; // Pass back the SQL
 		if($query){
 			// If the query returns >= 1 assign the number of rows to numResults
-			$this->numResults = mysql_num_rows($query);
+			$this->numResults = $query->num_rows;
 			// Loop through the query results by the number of rows returned
 			for($i = 0; $i < $this->numResults; $i++){
-				$r = mysql_fetch_array($query);
+				$r = $query->fetch_array();
                	$key = array_keys($r);
                	for($x = 0; $x < count($key); $x++){
                		// Sanitizes keys so only alphavalues are allowed
                    	if(!is_int($key[$x])){
-                   		if(mysql_num_rows($query) >= 1){
+                   		if($query->num_rows >= 1){
                    			$this->result[$i][$key[$x]] = $r[$key[$x]];
 						}else{
 							$this->result = null;
@@ -93,7 +83,7 @@ class Database {
 			}
 			return true; // Query was successful
 		}else{
-			array_push($this->result, mysql_error());
+			array_push($this->result,$this->myconn->error);
 			return false; // No rows where returned
 		}
 	}
@@ -114,32 +104,33 @@ class Database {
         if($limit != null){
             $q .= ' LIMIT '.$limit;
         }
+        // echo $table;
         $this->myQuery = $q; // Pass back the SQL
 		// Check to see if the table exists
         if($this->tableExists($table)){
         	// The table exists, run the query
-        	$query = @mysql_query($q);
+        	$query = $this->myconn->query($q);    
 			if($query){
 				// If the query returns >= 1 assign the number of rows to numResults
-				$this->numResults = mysql_num_rows($query);
+				$this->numResults = $query->num_rows;
 				// Loop through the query results by the number of rows returned
 				for($i = 0; $i < $this->numResults; $i++){
-					$r = mysql_fetch_array($query);
+					$r = $query->fetch_array();
                 	$key = array_keys($r);
                 	for($x = 0; $x < count($key); $x++){
                 		// Sanitizes keys so only alphavalues are allowed
                     	if(!is_int($key[$x])){
-                    		if(mysql_num_rows($query) >= 1){
+                    		if($query->num_rows >= 1){
                     			$this->result[$i][$key[$x]] = $r[$key[$x]];
 							}else{
-								$this->result = null;
+								$this->result[$i][$key[$x]] = null;
 							}
 						}
 					}
 				}
 				return true; // Query was successful
 			}else{
-				array_push($this->result, mysql_error());
+				array_push($this->result, $this->myconn->error);
 				return false; // No rows where returned
 			}
       	}else{
@@ -154,11 +145,11 @@ class Database {
     	 	$sql='INSERT INTO `'.$table.'` (`'.implode('`, `',array_keys($params)).'`) VALUES ("' . implode('", "', $params) . '")';
             $this->myQuery = $sql; // Pass back the SQL
             // Make the query to insert to the database
-            if($ins = @mysql_query($sql)){
-            	array_push($this->result, mysql_insert_id());
+            if($ins = $this->myconn->query($sql)){
+            	array_push($this->result, $this->myconn->insert_id);
                 return true; // The data has been inserted
             }else{
-            	array_push($this->result, mysql_error());
+            	array_push($this->result, $this->myconn->error);
                 return false; // The data has not been inserted
             }
         }else{
@@ -177,12 +168,12 @@ class Database {
                 $delete = 'DELETE FROM '.$table.' WHERE '.$where; // Create query to delete rows
             }
             // Submit query to database
-            if($del = @mysql_query($delete)){
-            	array_push($this->result, mysql_affected_rows());
+            if($del = $this->myconn->query($delete)){
+            	array_push($this->result, $this->myconn->affected_rows);
                 $this->myQuery = $delete; // Pass back the SQL
                 return true; // The query exectued correctly
             }else{
-            	array_push($this->result, mysql_error());
+            	array_push($this->result, $this->myconn->error);
                	return false; // The query did not execute correctly
             }
         }else{
@@ -204,11 +195,11 @@ class Database {
 			$sql='UPDATE '.$table.' SET '.implode(',',$args).' WHERE '.$where;
 			// Make query to database
             $this->myQuery = $sql; // Pass back the SQL
-            if($query = @mysql_query($sql)){
-            	array_push($this->result, mysql_affected_rows());
+            if($query = $this->myconn->query($sql)){
+            	array_push($this->result, $this->myconn->affected_rows);
             	return true; // Update has been successful
             }else{
-            	array_push($this->result, mysql_error());
+            	array_push($this->result, $this->myconn->error);
                 return false; // Update has not been successful
             }
         }else{
@@ -217,17 +208,16 @@ class Database {
     }
 	
 	// Private function to check if table exists for use with queries
-	private function tableExists($table){ 
-		$tables_db = mysql_list_tables($this->db_name); 
-		while (list ($temp) = mysql_fetch_array($tables_db)){
-			if ($temp == $table) {
-				return true;
-			}
-		}
-		array_push($this->result, $table." does not exist in this database");
-		return false;
+	private function TableExists($table) {
+    	$res = $this->myconn->query('SHOW TABLES LIKE "'.$table.'"');
+    	if(isset($res->num_rows)) {
+        	return $res->num_rows > 0 ? true : false;
+    	} else {
+    		array_push($this->result, $table." does not exist in this database");
+    		return false;
+    	}
 	}
-
+	
 	// Public function to return the data to the user
     public function getResult(){
         $val = $this->result;
@@ -251,6 +241,6 @@ class Database {
 
     // Escape your string
     public function escapeString($data){
-        return mysql_real_escape_string($data);
+        return $this->myconn->real_escape_string($data);
     }
 } 

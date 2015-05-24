@@ -6,7 +6,19 @@ This is a simple to use MySQL class that easily bolts on to any existing PHP app
 Setup
 -----
 
-Simply include this class into your project like so:
+**Database Credentials**
+
+You will need to change some variable values in the Class, that represent those of your own database. Change the following -
+
+```php
+private $db_host = "localhost";  // Change as required
+private $db_user = "username";  // Change as required
+private $db_pass = "password";  // Change as required
+private $db_name = "database";	// Change as required
+```
+
+Usage
+-----
 
 ```php
 <?php
@@ -14,87 +26,144 @@ Simply include this class into your project like so:
 	require_once("MySQL.class.php");
 
 	//Set up all yor paramaters for connection
-	$db = new connectDB("localhost","username","password","database",$persistent=false);
+	$db = new Database();
   
 ?>
 ```
 
-Usage
------
-
-To use this class, you'd first init the object like so (using example credentials):
-
-`$db = new connectDB("localhost","username","password","database",$persistent=false);`
-
-Provided you see no errors, you are now connected and can execute full MySQL queries using:
-
-`$db->execute($query);`
-
-`execute()` will return an array of results, or a true (if an UPDATE or DELETE).
-
-There are other functions such as `insert()`, `delete()` and `select()` which may or may not help with your queries to the database.
-
 Example
 -------
 
-To show you how easy this class is to use, consider you have a table called *admin*, which contains the following:
+**Test MySQL**
 
-```
-+----+--------------+
-| id | username     |
-+----+--------------+
-|  1 | superuser    |
-|  2 | admin        |
-+----+--------------+
-```
+Start by creating a test table in your database -
 
-To add a user, you'd simply use:
+```mysql
+CREATE TABLE IF NOT EXISTS tbl_test (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  name varchar(255) NOT NULL,
+  email varchar(255) NOT NULL,
+  PRIMARY KEY (id)
+);
 
-```
-$newUser = array('username' => 'user');
-$db->insert($newUser, 'admin');
-```
-
-And voila:
-
-```
-+----+---------------+
-| id | username      |
-+----+---------------+
-|  1 | superuser     |
-|  2 | admin         |
-|  3 | user          |
-+----+---------------+
+INSERT INTO tbl_test VALUES('','Name 1','name1@email.com');
+INSERT INTO tbl_test VALUES('','Name 2','name2@email.com');
+INSERT INTO tbl_test VALUES('','Name 3','name3@email.com');
 ```
 
-To get the results into a usable array, just use `$db->select('admin')` ...for example, doing the following:
 
-`print_r($db->select('admin'));`
+**Select Example**
 
-will yield:
+Use the following code to select * rows from the databse using this class
 
+```php
+<?php
+require_once("MySQL.class.php");
+$db = new Database();
+$db->connect();
+$db->select('tbl_test'); // Table name
+$res = $db->getResult();
+print_r($res);
 ```
-Array
-(
-    [0] => Array
-        (
-            [id] => 1
-            [username] => superuser
-        )
 
-    [1] => Array
-        (
-            [id] => 2
-            [username] => admin
-        )
+Use the following code to specify what is selected from the database using this class
 
-    [2] => Array
-        (
-            [id] => 3
-            [username] => user
-        )
+```php
+<?php
+require_once("MySQL.class.php");
+$db = new Database();
+$db->connect();
+$db->select('tbl_test','id,name','name="Name 1"','id DESC'); // Table name, Column Names, WHERE conditions, ORDER BY conditions
+$res = $db->getResult();
+print_r($res);
+```
 
-)
+**Join Example**
+
+Start by creating another table in your database -
+
+```mysql
+CREATE TABLE IF NOT EXISTS tbl_child (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  parentId int(11) NOT NULL,
+  name varchar(255) NOT NULL,
+  PRIMARY KEY (id)
+);
+
+INSERT INTO tbl_child VALUES('','1','Child 1');
+INSERT INTO tbl_child VALUES('','1','Child 2');
+INSERT INTO tbl_child VALUES('','2','Child 1');
+```
+
+Use the following code to select rows using a join in the database using this class
+
+```php
+<?php
+require_once("MySQL.class.php");
+$db = new Database();
+$db->connect();
+$db->select('tbl_test','tbl_test.id,tbl_test.name,tbl_child.name','tbl_child ON tbl_test.id = parentId','tbl_test.name="Name 1"','id DESC'); // Table name, Column Names, JOIN, WHERE conditions, ORDER BY conditions
+$res = $db->getResult();
+print_r($res);
+```
+
+**Update Example**
+
+Use the following code to update rows in the database using this class
+
+```php
+<?php
+require_once("MySQL.class.php");
+$db = new Database();
+$db->connect();
+$db->update('tbl_test',array('name'=>"Name 4",'email'=>"name4@email.com"),'id="1" AND name="Name 1"'); // Table name, column names and values, WHERE conditions
+$res = $db->getResult();
+print_r($res);
+```
+
+**Insert Example**
+
+Use the following code to insert rows into the database using this class
+
+```php
+<?php
+require_once("MySQL.class.php");
+$db = new Database();
+$db->connect();
+$data = $db->escapeString("name5@email.com"); // Escape any input before insert
+$db->insert('tbl_test',array('name'=>'Name 5','email'=>$data));  // Table name, column names and respective values
+$res = $db->getResult();  
+print_r($res);
+```
+
+**Delete Example**
+
+Use the following code to delete rows from the database with this class
+
+```php
+<?php
+require_once("MySQL.class.php");
+$db = new Database();
+$db->connect();
+$db->delete('tbl_test','id=5');  // Table name, WHERE conditions
+$res = $db->getResult();  
+print_r($res);
+```
+
+**Full SQL Example**
+
+Use the following code to enter the full SQL query
+
+```php
+<?php
+require_once("MySQL.class.php");
+$db = new Database();
+$db->connect();
+$db->query('SELECT id,name FROM tbl_test');
+$res = $db->getResult();
+foreach($res as $output){
+	echo $output["name"]."<br />";
+}
 ```
 
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/meownosaurus/mysql-crud-oop-class-php/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
