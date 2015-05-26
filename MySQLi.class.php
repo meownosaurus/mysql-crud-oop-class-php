@@ -243,4 +243,29 @@ class Database {
     public function escapeString($data){
         return $this->myconn->real_escape_string($data);
     }
+
+    function insert_id(){
+        return $this->myconn->insert_id;
+    }
+
+    function free($query) {
+        $this->myconn->free_result($query);
+    }
+
+    function close() {
+        // If there is a connection to the database
+        if($this->con){
+            // We have found a connection, try to close it
+            if($this->myconn->close()){
+                // We have successfully closed the connection, set the connection variable to false
+                $this->con = false;
+                // Return true tjat we have closed the connection
+                return true;
+            }else{
+                // We could not close the connection, return false
+                return false;
+            }
+        }
+    }
+
 } 

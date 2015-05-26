@@ -1,4 +1,4 @@
-MySQL OOP Class PHP (v.1.0)
+MySQL CRUD OOP Class PHP (v.1.3)
 ------------
 
 This is a simple to use MySQL class that easily bolts on to any existing PHP application, streamlining your MySQL interactions.
